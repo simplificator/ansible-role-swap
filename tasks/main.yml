@@ -1,0 +1,27 @@
+---
+
+- name: Test for swap partition
+  shell: 'swapon -s | grep -E "^/"'
+  changed_when: false
+  failed_when: false
+  register: swap_exists
+
+- name: Create swapfile
+  shell: "dd if=/dev/zero of=/var/swap.img bs=1024k count=1000"
+  when: swap_exists.rc
+
+- name: Set swapfile permissions
+  file: path=/var/swap.img owner=root group=root mode=0600
+  when: swap_exists.rc
+
+- name: Prepare swapfile
+  shell: sudo mkswap /var/swap.img warn=no
+  when: swap_exists.rc
+
+- name: Enable swap
+  shell: sudo swapon /var/swap.img warn=no
+  when: swap_exists.rc
+
+- name: Add swapfile
+  when: swap_exists.rc
+  lineinfile: dest=/etc/fstab regexp="^/swap.img" state=present line="/var/swap.img       none    swap    sw      0       0"
