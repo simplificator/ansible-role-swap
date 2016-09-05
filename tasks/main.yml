@@ -15,11 +15,11 @@
   when: swap_exists.rc
 
 - name: Prepare swapfile
-  shell: sudo mkswap /var/swap.img warn=no
+  shell: mkswap /var/swap.img warn=no
   when: swap_exists.rc
 
 - name: Enable swap
-  shell: sudo swapon /var/swap.img warn=no
+  shell: swapon /var/swap.img warn=no
   when: swap_exists.rc
 
 - name: Add swapfile
