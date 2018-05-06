@@ -10,8 +10,12 @@
   shell: "dd if=/dev/zero of=/var/swap.img bs=1024k count=1000"
   when: swap_exists.rc
 
-- name: Set swapfile permissions
-  file: path=/var/swap.img owner=root group=root mode=0600
+- name: change swap file permissions
+  file:
+    path: /var/swap.img
+    owner: root
+    group: root
+    mode: 0600
   when: swap_exists.rc
 
 - name: Prepare swapfile
@@ -22,6 +26,19 @@
   shell: swapon /var/swap.img warn=no
   when: swap_exists.rc
 
-- name: Add swapfile
+- name: write swap entry to fstab
   when: swap_exists.rc
-  lineinfile: dest=/etc/fstab regexp="^/swap.img" state=present line="/var/swap.img       none    swap    sw      0       0"
+  mount:
+    name: none
+    src: /var/swap.img
+    fstype: swap
+    opts: sw
+    passno: 0
+    dump: 0
+    state: present
+
+- name: configure swappiness
+  when: swap_exists.rc
+  lineinfile:
+    path: /etc/sysctl.conf
+    line: vm.swappiness=50
